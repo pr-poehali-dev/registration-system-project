@@ -11,7 +11,10 @@ interface Application {
   id: string;
   brand: string;
   model: string;
-  createdAt: string;
+  year: number;
+  price: number;
+  image: string;
+  status: "Создан" | "На рассмотрении" | "В пути" | "Отменен" | "Завершен";
 }
 
 interface User {
@@ -33,9 +36,35 @@ const ProfilePage = ({ user, onLogout, onUpdateUser }: ProfilePageProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [applications, setApplications] = useState<Application[]>([
-    { id: "1", brand: "Toyota", model: "Camry", createdAt: "2024-01-15" },
-    { id: "2", brand: "BMW", model: "X5", createdAt: "2024-01-10" },
-    { id: "3", brand: "Mercedes", model: "E-Class", createdAt: "2024-01-05" },
+    {
+      id: "1",
+      brand: "Toyota",
+      model: "Camry",
+      year: 2023,
+      price: 2500000,
+      image:
+        "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400",
+      status: "На рассмотрении",
+    },
+    {
+      id: "2",
+      brand: "BMW",
+      model: "X5",
+      year: 2022,
+      price: 4200000,
+      image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400",
+      status: "В пути",
+    },
+    {
+      id: "3",
+      brand: "Mercedes",
+      model: "E-Class",
+      year: 2023,
+      price: 3800000,
+      image:
+        "https://images.unsplash.com/photo-1563720223185-11003d516935?w=400",
+      status: "Завершен",
+    },
   ]);
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -89,6 +118,24 @@ const ProfilePage = ({ user, onLogout, onUpdateUser }: ProfilePageProps) => {
   const handleViewApplication = (brand: string, model: string) => {
     // Здесь будет переход к детальной карточке авто
     alert(`Переход к карточке: ${brand} ${model}`);
+  };
+
+  const getStatusBadge = (status: Application["status"]) => {
+    const statusConfig = {
+      Создан: "bg-gray-100 text-gray-800",
+      "На рассмотрении": "bg-blue-100 text-blue-800",
+      "В пути": "bg-yellow-100 text-yellow-800",
+      Отменен: "bg-red-100 text-red-800",
+      Завершен: "bg-green-100 text-green-800",
+    };
+
+    return (
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${statusConfig[status]}`}
+      >
+        {status}
+      </span>
+    );
   };
 
   if (!user) {
@@ -226,28 +273,33 @@ const ProfilePage = ({ user, onLogout, onUpdateUser }: ProfilePageProps) => {
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                   >
                     <div className="flex items-center space-x-3">
-                      <Icon name="Car" size={16} className="text-gray-500" />
-                      <div>
+                      <img
+                        src={app.image}
+                        alt={`${app.brand} ${app.model}`}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <div className="flex-1">
                         <p className="font-medium">
-                          {app.brand} {app.model}
+                          {app.brand} {app.model} ({app.year})
                         </p>
-                        <p className="text-sm text-gray-500">
-                          Создана:{" "}
-                          {new Date(app.createdAt).toLocaleDateString("ru-RU")}
-                        </p>
+                        <div className="flex items-center justify-between">
+                          <div className="text-lg font-semibold text-gray-900">
+                            {app.price.toLocaleString()} ₽
+                          </div>
+                          {getStatusBadge(app.status)}
+                        </div>
+                        <div className="flex space-x-2 mt-4">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteApplication(app.id)}
+                          >
+                            <Icon name="Trash2" size={16} className="mr-1" />
+                            Удалить
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleViewApplication(app.brand, app.model)
-                        }
-                      >
-                        <Icon name="Eye" size={14} className="mr-1" />
-                        Детали
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
