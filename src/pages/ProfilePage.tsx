@@ -288,7 +288,6 @@ const ProfilePage = ({ user, onLogout, onUpdateUser }: ProfilePageProps) => {
                           </div>
                           {getStatusBadge(app.status)}
                         </div>
-                        </div>
                       </div>
                     </div>
                     <Button
@@ -297,9 +296,8 @@ const ProfilePage = ({ user, onLogout, onUpdateUser }: ProfilePageProps) => {
                       onClick={() => handleDeleteApplication(app.id)}
                       className="text-red-600 hover:text-red-700"
                     >
-                        <Icon name="Trash2" size={14} />
-                      </Button>
-                    </div>
+                      <Icon name="Trash2" size={14} />
+                    </Button>
                   </div>
                 ))}
               </div>
