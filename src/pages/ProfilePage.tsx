@@ -7,11 +7,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Icon from "@/components/ui/icon";
 
+interface Application {
+  id: string;
+  brand: string;
+  model: string;
+  createdAt: string;
+}
+
 interface User {
   name: string;
   email: string;
   role: "customer" | "manager";
   phone?: string;
+  applications?: Application[];
 }
 
 interface ProfilePageProps {
@@ -24,6 +32,11 @@ const ProfilePage = ({ user, onLogout, onUpdateUser }: ProfilePageProps) => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [applications, setApplications] = useState<Application[]>([
+    { id: "1", brand: "Toyota", model: "Camry", createdAt: "2024-01-15" },
+    { id: "2", brand: "BMW", model: "X5", createdAt: "2024-01-10" },
+    { id: "3", brand: "Mercedes", model: "E-Class", createdAt: "2024-01-05" },
+  ]);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -65,6 +78,17 @@ const ProfilePage = ({ user, onLogout, onUpdateUser }: ProfilePageProps) => {
       phone: user?.phone || "",
     });
     setIsEditing(false);
+  };
+
+  const handleDeleteApplication = (id: string) => {
+    if (confirm("Вы уверены, что хотите удалить эту заявку?")) {
+      setApplications((prev) => prev.filter((app) => app.id !== id));
+    }
+  };
+
+  const handleViewApplication = (brand: string, model: string) => {
+    // Здесь будет переход к детальной карточке авто
+    alert(`Переход к карточке: ${brand} ${model}`);
   };
 
   if (!user) {
@@ -179,6 +203,73 @@ const ProfilePage = ({ user, onLogout, onUpdateUser }: ProfilePageProps) => {
                 </div>
               )}
             </form>
+          </CardContent>
+        </Card>
+
+        {/* Раздел заявок */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Icon name="FileText" size={20} />
+              <span>Мои заявки</span>
+              <span className="text-sm font-normal text-gray-500">
+                ({applications.length})
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {applications.length > 0 ? (
+              <div className="space-y-3">
+                {applications.map((app) => (
+                  <div
+                    key={app.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="Car" size={16} className="text-gray-500" />
+                      <div>
+                        <p className="font-medium">
+                          {app.brand} {app.model}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Создана:{" "}
+                          {new Date(app.createdAt).toLocaleDateString("ru-RU")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          handleViewApplication(app.brand, app.model)
+                        }
+                      >
+                        <Icon name="Eye" size={14} className="mr-1" />
+                        Детали
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteApplication(app.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Icon name="Trash2" size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Icon
+                  name="FileX"
+                  size={48}
+                  className="mx-auto mb-2 opacity-50"
+                />
+                <p>У вас пока нет заявок</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

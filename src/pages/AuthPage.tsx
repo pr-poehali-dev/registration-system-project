@@ -26,7 +26,6 @@ const AuthPage = ({ onAuth }: AuthPageProps) => {
     name: "",
     email: "",
     password: "",
-    role: "customer" as "customer" | "manager",
   });
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -68,7 +67,7 @@ const AuthPage = ({ onAuth }: AuthPageProps) => {
       onAuth({
         name: formData.name || "Пользователь",
         email: formData.email,
-        role: formData.role,
+        role: "customer",
       });
     }
   };
