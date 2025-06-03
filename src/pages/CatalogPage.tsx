@@ -155,6 +155,14 @@ const CatalogPage = ({ user, onLogout }: CatalogPageProps) => {
     navigate(`/vehicle/${id}`);
   };
 
+  const handleAddVehicle = () => {
+    navigate("/add-vehicle");
+  };
+
+  const handleManageApplications = () => {
+    navigate("/manager");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header user={user} onLogout={onLogout} />
