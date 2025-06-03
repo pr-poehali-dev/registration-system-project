@@ -3,9 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
 
 interface Vehicle {
@@ -19,12 +25,18 @@ interface Vehicle {
   engineVolume: number;
   transmission: string;
   color: string;
+  bodyType: string;
+  engineType: string;
+  driveType: string;
+  horsepower: number;
+  acceleration: number;
 }
 
 interface User {
   name: string;
   email: string;
   role: "customer" | "manager";
+  phone?: string;
 }
 
 interface VehicleDetailsPageProps {
@@ -36,14 +48,9 @@ const VehicleDetailsPage = ({ user, onLogout }: VehicleDetailsPageProps) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [applicationData, setApplicationData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    phone: "",
-    message: "",
-  });
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Моковые данные (в реальном приложении загружали бы с сервера)
+  // Расширенные моковые данные
   const vehicle: Vehicle = {
     id: "1",
     brand: "Toyota",
@@ -55,10 +62,16 @@ const VehicleDetailsPage = ({ user, onLogout }: VehicleDetailsPageProps) => {
     engineVolume: 2.0,
     transmission: "Автомат",
     color: "Серебристый",
+    bodyType: "Седан",
+    engineType: "Бензин",
+    driveType: "Передний",
+    horsepower: 150,
+    acceleration: 9.2,
   };
 
-  const handleSubmitApplication = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const hasContactData = user?.phone && user.phone.trim() !== "";
+
+  const handleConfirmApplication = async () => {
     setIsSubmitting(true);
 
     // Имитация отправки заявки
@@ -70,10 +83,10 @@ const VehicleDetailsPage = ({ user, onLogout }: VehicleDetailsPageProps) => {
         id: Date.now().toString(),
         vehicleId: vehicle.id,
         vehicleName: `${vehicle.brand} ${vehicle.model}`,
-        customerName: applicationData.name,
-        customerEmail: applicationData.email,
-        customerPhone: applicationData.phone,
-        message: applicationData.message,
+        customerName: user?.name,
+        customerEmail: user?.email,
+        customerPhone: user?.phone,
+        message: "",
         status: "pending",
         createdAt: new Date().toISOString(),
       };
@@ -82,10 +95,38 @@ const VehicleDetailsPage = ({ user, onLogout }: VehicleDetailsPageProps) => {
       localStorage.setItem("applications", JSON.stringify(applications));
 
       setIsSubmitting(false);
+      setDialogOpen(false);
       alert("Заявка успешно отправлена!");
       navigate("/");
     }, 1000);
   };
+
+  const vehicleSpecs = [
+    { label: "Марка", value: vehicle.brand, icon: "Car" },
+    { label: "Модель", value: vehicle.model, icon: "Tag" },
+    { label: "Год выпуска", value: `${vehicle.year}`, icon: "Calendar" },
+    {
+      label: "Пробег",
+      value: `${vehicle.mileage.toLocaleString()} км`,
+      icon: "Gauge",
+    },
+    { label: "КПП", value: vehicle.transmission, icon: "Settings" },
+    { label: "Кузов", value: vehicle.bodyType, icon: "Box" },
+    { label: "Двигатель", value: vehicle.engineType, icon: "Zap" },
+    {
+      label: "Объем двигателя",
+      value: `${vehicle.engineVolume}л`,
+      icon: "Cog",
+    },
+    { label: "Привод", value: vehicle.driveType, icon: "Compass" },
+    { label: "Мощность", value: `${vehicle.horsepower} л.с.`, icon: "Zap" },
+    {
+      label: "Разгон 0-100",
+      value: `${vehicle.acceleration} сек`,
+      icon: "Timer",
+    },
+    { label: "Цвет", value: vehicle.color, icon: "Palette" },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -114,27 +155,18 @@ const VehicleDetailsPage = ({ user, onLogout }: VehicleDetailsPageProps) => {
                 {vehicle.brand} {vehicle.model}
               </CardTitle>
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center space-x-2">
-                  <Icon name="Calendar" size={16} />
-                  <span>{vehicle.year} год</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Icon name="Gauge" size={16} />
-                  <span>{vehicle.mileage.toLocaleString()} км</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Icon name="Cog" size={16} />
-                  <span>{vehicle.engineVolume}л</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Icon name="Settings" size={16} />
-                  <span>{vehicle.transmission}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Icon name="Palette" size={16} />
-                  <span>{vehicle.color}</span>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                {vehicleSpecs.map((spec, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Icon
+                      name={spec.icon as any}
+                      size={16}
+                      className="text-gray-500"
+                    />
+                    <span className="font-medium">{spec.label}:</span>
+                    <span>{spec.value}</span>
+                  </div>
+                ))}
               </div>
 
               <div className="mt-6 pt-4 border-t">
@@ -145,82 +177,59 @@ const VehicleDetailsPage = ({ user, onLogout }: VehicleDetailsPageProps) => {
             </CardContent>
           </Card>
 
-          {/* Форма заявки */}
+          {/* Заявка */}
           <Card>
             <CardHeader>
-              <CardTitle>Оставить заявку</CardTitle>
+              <CardTitle>Оформление заявки</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmitApplication} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Имя</Label>
-                  <Input
-                    id="name"
-                    value={applicationData.name}
-                    onChange={(e) =>
-                      setApplicationData({
-                        ...applicationData,
-                        name: e.target.value,
-                      })
-                    }
-                    required
-                  />
+              {hasContactData ? (
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full" size="lg">
+                      Оформить заявку
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Подтвердить заявку</DialogTitle>
+                      <DialogDescription>
+                        Вы уверены, что хотите оформить заявку на{" "}
+                        {vehicle.brand} {vehicle.model}? Заявка будет отправлена
+                        на рассмотрение менеджеру.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setDialogOpen(false)}
+                      >
+                        Отмена
+                      </Button>
+                      <Button
+                        onClick={handleConfirmApplication}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Отправка..." : "Подтвердить"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                <div className="text-center space-y-4">
+                  <p className="text-gray-600">
+                    Чтобы оформить заявку, нужно заполнить контактные данные
+                  </p>
+                  <Button
+                    onClick={() => navigate("/profile")}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Icon name="User" size={16} className="mr-2" />
+                    Заполнить контакты
+                  </Button>
                 </div>
-
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={applicationData.email}
-                    onChange={(e) =>
-                      setApplicationData({
-                        ...applicationData,
-                        email: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Телефон</Label>
-                  <Input
-                    id="phone"
-                    value={applicationData.phone}
-                    onChange={(e) =>
-                      setApplicationData({
-                        ...applicationData,
-                        phone: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="message">Сообщение</Label>
-                  <Textarea
-                    id="message"
-                    value={applicationData.message}
-                    onChange={(e) =>
-                      setApplicationData({
-                        ...applicationData,
-                        message: e.target.value,
-                      })
-                    }
-                    placeholder="Дополнительная информация..."
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Отправка..." : "Отправить заявку"}
-                </Button>
-              </form>
+              )}
             </CardContent>
           </Card>
         </div>
